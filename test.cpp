@@ -152,13 +152,13 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 
 	Time1 = clock();
 
-	for(i = 1 ;  i < m_ar; i+=bkSize)
-		for(j = 1 ;  j < m_ar; j+=bkSize)
-			for (k=1; k <m_ar; k+=bkSize)
-				for (ii = i; ii < min(i+bkSize-1,m_ar); ii++)
-					for(jj = j; jj < min(j+bkSize-1,m_ar); jj++)
-						for(kk = k; kk < min(k+bkSize-1,m_ar); kk++)
-							phc[ii*m_ar+jj] += phc[ii*m_ar+jj] +pha[ii*m_ar+kk] * phb[kk*m_ar+jj];
+	for(i = 0;  i < m_ar; i+=bkSize)
+		for(j = 0;  j < m_ar; j+=bkSize)
+			for (k = 0; k <m_ar; k+=bkSize)
+				for (ii = i; ii < min(i+bkSize,m_ar); ii++)
+					for(jj = j; jj < min(j+bkSize,m_ar); jj++)
+						for(kk = k; kk < min(k+bkSize,m_ar); kk++)
+							phc[ii*m_ar+jj] += pha[ii*m_ar+kk] * phb[kk*m_ar+jj];
 	Time2 = clock();
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
