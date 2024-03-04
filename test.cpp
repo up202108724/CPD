@@ -150,15 +150,30 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
 
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+	for(i=0; i<1; i++)
+	{	for(j=0; j<min(10,m_br); j++)
+			cout << pha[j] << " ";
+	}
+
 	Time1 = clock();
 
 	for(i = 0;  i < m_ar; i+=bkSize)
 		for(j = 0;  j < m_ar; j+=bkSize)
 			for (k = 0; k <m_ar; k+=bkSize)
-				for (ii = i; ii < min(i+bkSize,m_ar); ii++)
-					for(jj = j; jj < min(j+bkSize,m_ar); jj++)
-						for(kk = k; kk < min(k+bkSize,m_ar); kk++)
-							phc[ii*m_ar+jj] += pha[ii*m_ar+kk] * phb[kk*m_ar+jj];
+				for (ii = i; ii < i+bkSize; ii++)
+					for(jj = j; jj < j+bkSize; jj++)
+						for(kk = k; kk < k+bkSize; kk++)
+							phc[ii*m_ar+kk] += pha[ii*m_ar+jj] * phb[jj*m_ar+kk]; 
 	Time2 = clock();
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
@@ -176,8 +191,140 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
     free(phc);
 }
 
+// add code here for line x line matriz multiplication
+void OnMultLineParallel(int m_ar, int m_br)
+{
+    int retval;
+	float rtime, ptime, mflops;
+    long long flpins;
+
+    SYSTEMTIME Time1, Time2;
+	
+	char st[100];
+	double temp;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+	
+
+		
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
 
 
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+
+    Time1 = clock();
+	
+	#pragma omp parallel for
+	for(i=0; i<m_ar; i++){	
+		for(k=0; k<m_ar; k++){	
+            for(j=0; j<m_br; j++){	
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+			
+		}
+	}
+
+
+    Time2 = clock();
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	cout << st;
+	//PAPI_flops to measure MFLOPs
+    // Check if PAPI is initialized
+    if (PAPI_is_initialized() != PAPI_NOT_INITED)
+    {
+        cerr << "PAPI is not initialized" << endl;
+        // Handle the error or exit the program
+        return;
+    }
+    // Display measured values
+    cout << "Real Time: " << rtime << " seconds" << endl;
+    cout << "Process Time: " << ptime << " seconds" << endl;
+    cout << "Total Floating Point Instructions: " << flpins << endl;
+    cout << "MFLOPs: " << mflops << endl;
+	// display 10 elements of the result matrix tto verify correctness
+	cout << "Result matrix: " << endl;
+	for(i=0; i<1; i++)
+	{	for(j=0; j<min(10,m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+    
+}
+void OnMultLineParallelFor(int m_ar, int m_br)
+{
+    
+    SYSTEMTIME Time1, Time2;
+	
+	char st[100];
+	double temp;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+	
+
+		
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+
+
+    Time1 = clock();
+	
+	#pragma omp parallel
+	for(i=0; i<m_ar; i++){	
+		for(k=0; k<m_ar; k++){	
+            #pragma omp for
+			for(j=0; j<m_br; j++){	
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+			
+		}
+	}
+
+
+    Time2 = clock();
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	cout << st;
+
+	// display 10 elements of the result matrix tto verify correctness
+	cout << "Result matrix: " << endl;
+	for(i=0; i<1; i++)
+	{	for(j=0; j<min(10,m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+    
+}
 void handle_error (int retval)
 {
   printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
@@ -206,7 +353,7 @@ int main (int argc, char *argv[])
 	int op;
 	
 	int EventSet = PAPI_NULL;
-  	long long values[2];
+  	long long values[3];
   	int ret;
 	
 
@@ -227,11 +374,16 @@ int main (int argc, char *argv[])
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
 
+	ret = PAPI_add_event(EventSet,PAPI_DP_OPS);
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_DP_OPS" << endl;
+
 	op=1;
 	do {
 		cout << endl << "1. Multiplication" << endl;
 		cout << "2. Line Multiplication" << endl;
 		cout << "3. Block Multiplication" << endl;
+		cout << "4. Parallel Implementation" << endl;
+		cout << "5. Parallel Implementation Version 2 " << endl;
 		cout << "Selection?: ";
 		cin >>op;
 		if (op == 0)
@@ -257,13 +409,19 @@ int main (int argc, char *argv[])
 				cin >> blockSize;
 				OnMultBlock(lin, col, blockSize);  
 				break;
-
+			case 4:
+				OnMultLineParallel(lin,col);
+				break;	
+			case 5:
+				OnMultLineParallelFor(lin,col);	
+				break;
 		}
 
   		ret = PAPI_stop(EventSet, values);
   		if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
   		printf("L1 DCM: %lld \n",values[0]);
   		printf("L2 DCM: %lld \n",values[1]);
+		printf("FLOPS: %lld \n",values[2]);
 
 		ret = PAPI_reset( EventSet );
 		if ( ret != PAPI_OK )
@@ -278,6 +436,10 @@ int main (int argc, char *argv[])
 		std::cout << "FAIL remove event" << endl; 
 
 	ret = PAPI_remove_event( EventSet, PAPI_L2_DCM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+
+	ret = PAPI_remove_event( EventSet, PAPI_DP_OPS );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
 
