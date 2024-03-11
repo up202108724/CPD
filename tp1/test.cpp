@@ -222,13 +222,6 @@ void OnMultLineParallel(int m_ar, int m_br)
 		for(j=0; j<m_br; j++)
 			phb[i*m_br + j] = (double)(i+1);
 
-	if((retval=PAPI_flops(&rtime, &ptime, &flpins, &mflops)< PAPI_OK) )
-  	{ 
-    printf("Could not initialise PAPI_flops \n");
-    printf("Your platform may not support floating point operation event.\n"); 
-    printf("retval: %d\n", retval);
-    exit(1);
-  	}
 
     Time1 = clock();
 	
@@ -254,11 +247,6 @@ void OnMultLineParallel(int m_ar, int m_br)
         // Handle the error or exit the program
         return;
     }
-    if ((retval=PAPI_flops(&rtime, &ptime, &flpins, &mflops)) < PAPI_OK)
-    {
-        cerr << "PAPI_flops failed" << endl;
-    }
-
     // Display measured values
     cout << "Real Time: " << rtime << " seconds" << endl;
     cout << "Process Time: " << ptime << " seconds" << endl;
@@ -384,21 +372,40 @@ int main (int argc, char *argv[])
 
 	ret = PAPI_add_event(EventSet,PAPI_L2_DCM);
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
+	/*
+	ret = PAPI_add_event(EventSet,PAPI_L1_ICM );
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_L1_ICM" << endl;
 
+
+	ret = PAPI_add_event(EventSet,PAPI_L2_ICM);
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_ICM" << endl;
+
+	ret = PAPI_add_event(EventSet,PAPI_L1_TCM );
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_L1_TCM" << endl;
+
+
+	ret = PAPI_add_event(EventSet,PAPI_L2_TCM);
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_TCM" << endl;
+	
+	ret = PAPI_add_event(EventSet,PAPI_L3_TCM);
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_TCM" << endl;
+	/*
+	ret= PAPI_add_event(EventSet, PAPI_DP_OPS);
+	if (ret != PAPI_OK) cout << "ERROR: PAPI_DP_OPS" << endl;
+	*/
 
 	op=1;
-	do {
-		cout << endl << "1. Multiplication" << endl;
-		cout << "2. Line Multiplication" << endl;
-		cout << "3. Block Multiplication" << endl;
-		cout << "4. Parallel Implementation" << endl;
-		cout << "5. Parallel Implementation Version 2 " << endl;
-		cout << "Selection?: ";
+	
+		//cout << endl << "1. Multiplication" << endl;
+		//cout << "2. Line Multiplication" << endl;
+		//cout << "3. Block Multiplication" << endl;
+		//cout << "4. Parallel Implementation" << endl;
+		//cout << "5. Parallel Implementation Version 2 " << endl;
+		//cout << "Selection?: ";
 		cin >>op;
-		if (op == 0)
-			break;
 		printf("Dimensions: lins=cols ? ");
    		cin >> lin;
+		cout << lin;
    		col = lin;
 
 
@@ -430,14 +437,18 @@ int main (int argc, char *argv[])
   		if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
   		printf("L1 DCM: %lld \n",values[0]);
   		printf("L2 DCM: %lld \n",values[1]);
-
+		//printf("L1 ICM: %lld \n",values[2]);
+		//printf("L2 ICM : %lld \n",values[3]);
+		//printf("L1 TCM: %lld \n",values[4]);
+		//printf("L2 TCM: %lld \n",values[5]);
+		//printf("L3 TCM: %lld \n",values[6]);
 		ret = PAPI_reset( EventSet );
 		if ( ret != PAPI_OK )
 			std::cout << "FAIL reset" << endl; 
 
 
 
-	}while (op != 0);
+	
 
 	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
 	if ( ret != PAPI_OK )
@@ -446,7 +457,31 @@ int main (int argc, char *argv[])
 	ret = PAPI_remove_event( EventSet, PAPI_L2_DCM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
-
+	
+	ret = PAPI_remove_event( EventSet, PAPI_L1_ICM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+		
+	
+	ret = PAPI_remove_event( EventSet, PAPI_L2_ICM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+		
+	
+	ret = PAPI_remove_event( EventSet, PAPI_L1_TCM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+		
+	
+	ret = PAPI_remove_event( EventSet, PAPI_L2_TCM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+		
+	
+	ret = PAPI_remove_event( EventSet, PAPI_L3_TCM );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL remove event" << endl; 
+		
 	ret = PAPI_destroy_eventset( &EventSet );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL destroy" << endl;
