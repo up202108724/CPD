@@ -457,7 +457,7 @@ int main (int argc, char *argv[])
 	ret = PAPI_remove_event( EventSet, PAPI_L2_DCM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
-	
+	/*
 	ret = PAPI_remove_event( EventSet, PAPI_L1_ICM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
@@ -481,7 +481,7 @@ int main (int argc, char *argv[])
 	ret = PAPI_remove_event( EventSet, PAPI_L3_TCM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
-		
+	*/	
 	ret = PAPI_destroy_eventset( &EventSet );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL destroy" << endl;
